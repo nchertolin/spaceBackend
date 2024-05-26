@@ -48,9 +48,15 @@ const PurchaseController = {
             date: { [Op.between]: [startDate, endDate] },
         };
 
+        const clientWhereClause = {};
+
         if (search) {
             whereClause[Op.or] = [
-                { name: { [Op.like]: `%${search}%` } },
+                { name: { [Op.iLike]: `%${search}%` } },
+            ];
+            clientWhereClause[Op.or] = [
+                { name: { [Op.iLike]: `%${search}%` } },
+                { phone: { [Op.iLike]: `%${search}%` } },
             ];
         }
 
@@ -61,7 +67,12 @@ const PurchaseController = {
             limit,
             offset,
             attributes: ['id', 'date', 'name', 'reward', 'note'],
-            include: [{ model: Client, attributes: ['id', 'name', 'phone'] }],
+            include: [{
+                model: Client,
+                where: clientWhereClause,
+                attributes: ['id', 'name', 'phone'],
+                required: false,
+            }],
         });
         return res.json(purchases);
     },
