@@ -5,7 +5,7 @@ const ApiError = require('../error/ApiError');
 
 const ERROR_MESSAGE = {
     LOGPASS: 'Неверный логин или пароль',
-    EXIST: 'User with same login is already exist',
+    EXIST: 'Пользователь с таким логином уже существует',
     NOT_FOUND: 'Пользователь не найден',
     INCORRECT_PASSWORD: 'Некорректный пароль',
 };
@@ -17,6 +17,22 @@ const generateJwt = (id, login) => sign(
 );
 
 const UserController = {
+    async getOne(req, res, next) {
+        const { id } = req.params;
+        const user = await User.findOne(
+            {
+                where: { id },
+                attributes: [
+                    'login',
+                    'name',
+                ],
+            },
+        );
+        if (!user) {
+            return next(ApiError.badRequest((ERROR_MESSAGE.NOT_FOUND)));
+        }
+        return res.json(user);
+    },
     async signup(req, res, next) {
         const { login, password } = req.body;
         if (!login || !password) {
@@ -43,7 +59,9 @@ const UserController = {
             return next(ApiError.badRequest(ERROR_MESSAGE.INCORRECT_PASSWORD));
         }
         const token = generateJwt(user.id, user.login);
-        return res.json({ token, login: user.login, name: user.name });
+        return res.json({
+            id: user.id, token, login: user.login, name: user.name,
+        });
     },
 
     async check(req, res) {

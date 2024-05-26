@@ -45,20 +45,21 @@ const ClientController = {
     async getAll(req, res) {
         const { search } = req.query;
         let {
-            limit, page,
+            limit, page, startDate, endDate,
         } = req.query;
         page = page || 1;
         limit = limit || 10;
-        // TODO Filter startDate endDate
+        startDate = startDate || new Date('2024-01-01');
+        endDate = endDate || Date.now();
         const offset = page * limit - limit;
 
         const whereClause = {};
 
         if (search) {
             whereClause[Op.or] = [
-                { name: { [Op.like]: `%${search}%` } },
-                { phone: { [Op.like]: `%${search}%` } },
-                { description: { [Op.like]: `%${search}%` } },
+                { name: { [Op.iLike]: `%${search}%` } },
+                { phone: { [Op.iLike]: `%${search}%` } },
+                { description: { [Op.iLike]: `%${search}%` } },
             ];
         }
 
@@ -67,22 +68,18 @@ const ClientController = {
             limit,
             offset,
             attributes: ['id', 'name', 'phone', 'description', 'bonuses'],
-        });
-
-        await Promise.all(clients.rows.map(async (client) => {
-            const lastPurchase = await Purchase.findOne({
-                where: { clientId: client.id },
+            include: [{
+                model: Purchase,
+                as: 'purchases',
+                where: {
+                    date: { [Op.between]: [startDate, endDate] },
+                },
+                attributes: ['id', 'date', 'name', 'reward', 'note'],
                 order: [['date', 'DESC']],
-            });
-            if (lastPurchase) {
-                client.setDataValue('lastPurchase', {
-                    name: lastPurchase.name,
-                    date: lastPurchase.date,
-                });
-            } else {
-                client.setDataValue('lastPurchase', null);
-            }
-        }));
+                limit: 1,
+                required: true,
+            }],
+        });
 
         return res.json(clients);
     },
@@ -143,7 +140,9 @@ const ClientController = {
 
         if (search) {
             whereClause[Op.or] = [
-                { name: { [Op.like]: `%${search}%` } },
+                {
+                    name: { [Op.iLike]: `%${search}%` },
+                },
             ];
         }
 
