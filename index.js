@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cron = require('node-cron');
-// const cors = require('cors');
+const cors = require('cors');
 const router = require('./routes/index');
 const sequelize = require('./db');
 const errorHandler = require('./middleware/ErrorHandlingMiddleware');
@@ -10,7 +10,20 @@ const StatisticsController = require('./controllers/statisticsController');
 const PORT = process.env.PORT || 3000;
 const app = express();
 
-// app.use(cors());
+const corsOpts = {
+    origin: '*',
+
+    methods: [
+        'GET',
+        'POST',
+    ],
+
+    allowedHeaders: [
+        'Content-Type',
+    ],
+};
+
+app.use(cors(corsOpts));
 app.use(express.json());
 app.use('/api', router);
 
