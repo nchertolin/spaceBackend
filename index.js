@@ -10,7 +10,19 @@ const StatisticsController = require('./controllers/statisticsController');
 const PORT = process.env.PORT || 3000;
 const app = express();
 
-app.use(cors());
+const allowedDomains = ['https://space-frontend.vercel.app/'];
+
+const corsOptions = {
+    origin: (origin, callback) => {
+        if (allowedDomains.indexOf(origin) !== -1 || !origin) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use('/api', router);
 
