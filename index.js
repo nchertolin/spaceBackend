@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cron = require('node-cron');
-const cors = require('cors');
+// const cors = require('cors');
 const router = require('./routes/index');
 const sequelize = require('./db');
 const errorHandler = require('./middleware/ErrorHandlingMiddleware');
@@ -10,19 +10,7 @@ const StatisticsController = require('./controllers/statisticsController');
 const PORT = process.env.PORT || 3000;
 const app = express();
 
-const allowedDomains = ['https://space-frontend.vercel.app/'];
-
-const corsOptions = {
-    origin: (origin, callback) => {
-        if (allowedDomains.indexOf(origin) !== -1 || !origin) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-};
-
-app.use(cors(corsOptions));
+// app.use(cors());
 app.use(express.json());
 app.use('/api', router);
 
